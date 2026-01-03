@@ -324,10 +324,19 @@ def sync_persons(postgres_users, pd_person_by_email, pd_org_by_name, pd_org_by_i
         ])
         
         # Get current Pipedrive org
-        current_org_id = pd_person.get('org_id')
+        # org_id can be a dict like {'name': 'Org Name', 'value': 123} or just an int
+        current_org_id_raw = pd_person.get('org_id')
+        current_org_id = None
         current_org_name = None
-        if current_org_id and current_org_id in pd_org_by_id:
-            current_org_name = pd_org_by_id[current_org_id]['name']
+        
+        if current_org_id_raw:
+            if isinstance(current_org_id_raw, dict):
+                current_org_id = current_org_id_raw.get('value')
+                current_org_name = current_org_id_raw.get('name')
+            else:
+                current_org_id = current_org_id_raw
+                if current_org_id in pd_org_by_id:
+                    current_org_name = pd_org_by_id[current_org_id]['name']
         
         # Determine if current org matches any Postgres org
         postgres_org_names_lower = [o['name'].lower() for o in postgres_user['orgs']]
